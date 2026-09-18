@@ -1,0 +1,6 @@
+{
+  "name": "URIMAIYALAR AI",
+  "description": "Tamil-first AI Business Intelligence Platform for micro and small enterprises with voice intelligence, real-time inventory, ledger, financial analytics, and government schemes.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

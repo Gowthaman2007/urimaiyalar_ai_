@@ -1,0 +1,403 @@
+// URIMAIYALAR AI - Production PostgreSQL Database Schema
+// Optimized for Supabase, Neon, AWS RDS, Cloud SQL, Railway, and Render
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  OWNER
+  MANAGER
+  CASHIER
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  CREDIT
+  CARD
+  BANK_TRANSFER
+  SPLIT
+}
+
+enum InventoryTxType {
+  SALE
+  PURCHASE
+  RETURN
+  ADJUSTMENT
+  DAMAGE
+}
+
+enum CreditTxType {
+  CREDIT_GIVEN
+  PAYMENT_RECEIVED
+  PURCHASE_ON_CREDIT
+  SUPPLIER_PAYMENT
+}
+
+enum MemoryType {
+  FACT
+  EVENT
+  PREFERENCE
+  INSIGHT
+  CONVERSATION_SUMMARY
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         UserRole   @default(OWNER)
+  phone        String?
+  businesses   Business[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([email])
+}
+
+model Business {
+  id                String                 @id @default(uuid())
+  userId            String
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName      String
+  ownerName         String
+  businessType      String
+  category          String
+  phone             String
+  email             String?
+  address           String
+  district          String
+  state             String                 @default("Tamil Nadu")
+  preferredLanguage String                 @default("ta")
+  currency          String                 @default("INR")
+  gstin             String?
+  isDemo            Boolean                @default(false)
+  products          Product[]
+  categories        Category[]
+  customers         Customer[]
+  suppliers         Supplier[]
+  sales             Sale[]
+  purchases         Purchase[]
+  creditTxs         CreditTransaction[]
+  expenses          Expense[]
+  inventoryTxs      InventoryTransaction[]
+  memories          BusinessMemory[]
+  alerts            Alert[]
+  aiConversations   AIConversation[]
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([userId])
+}
+
+model Category {
+  id         String    @id @default(uuid())
+  businessId String
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String
+  tamilName  String?
+  products   Product[]
+
+  @@unique([businessId, name])
+}
+
+model Product {
+  id           String                 @id @default(uuid())
+  businessId   String
+  business     Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  categoryId   String?
+  categoryRef  Category?              @relation(fields: [categoryId], references: [id])
+  name         String
+  tamilName    String?
+  sku          String
+  category     String
+  unit         String
+  sellingPrice Float
+  purchasePrice Float
+  currentStock Float                  @default(0)
+  minimumStock Float                  @default(5)
+  supplierName String?
+  status       String                 @default("ACTIVE")
+  saleItems    SaleItem[]
+  purchaseItems PurchaseItem[]
+  inventoryTxs InventoryTransaction[]
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([businessId, sku])
+  @@index([businessId, name])
+}
+
+model InventoryTransaction {
+  id             String          @id @default(uuid())
+  businessId     String
+  business       Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productName    String
+  type           InventoryTxType
+  quantityChange Float
+  previousStock  Float
+  newStock       Float
+  reason         String?
+  referenceId    String?
+  createdAt      DateTime        @default(now())
+
+  @@index([businessId, productId])
+  @@index([createdAt])
+}
+
+model Customer {
+  id                String              @id @default(uuid())
+  businessId        String
+  business          Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name              String
+  phone             String
+  address           String?
+  notes             String?
+  totalPurchases    Float               @default(0)
+  totalPaid         Float               @default(0)
+  outstandingCredit Float               @default(0)
+  sales             Sale[]
+  creditTxs         CreditTransaction[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([businessId, phone])
+  @@index([businessId, name])
+}
+
+model Supplier {
+  id                 String              @id @default(uuid())
+  businessId         String
+  business           Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name               String
+  phone              String
+  address            String?
+  notes              String?
+  totalPurchases     Float               @default(0)
+  totalPaid          Float               @default(0)
+  outstandingPayable Float               @default(0)
+  purchases          Purchase[]
+  creditTxs          CreditTransaction[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([businessId, name])
+}
+
+model Sale {
+  id             String        @id @default(uuid())
+  businessId     String
+  business       Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invoiceNumber  String
+  customerId     String?
+  customer       Customer?     @relation(fields: [customerId], references: [id])
+  customerName   String
+  customerPhone  String?
+  items          SaleItem[]
+  totalAmount    Float
+  discountAmount Float         @default(0)
+  taxAmount      Float         @default(0)
+  netAmount      Float
+  paymentMethod  PaymentMethod
+  paidAmount     Float
+  creditAmount   Float         @default(0)
+  notes          String?
+  createdAt      DateTime      @default(now())
+
+  @@unique([businessId, invoiceNumber])
+  @@index([businessId, createdAt])
+}
+
+model SaleItem {
+  id            String   @id @default(uuid())
+  saleId        String
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  productName   String
+  unit          String
+  quantity      Float
+  unitPrice     Float
+  purchasePrice Float
+  subtotal      Float
+}
+
+model Purchase {
+  id            String         @id @default(uuid())
+  businessId    String
+  business      Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  billNumber    String
+  supplierId    String?
+  supplier      Supplier?      @relation(fields: [supplierId], references: [id])
+  supplierName  String
+  supplierPhone String?
+  items         PurchaseItem[]
+  totalAmount   Float
+  paidAmount    Float
+  creditAmount  Float          @default(0)
+  paymentMethod PaymentMethod
+  notes         String?
+  createdAt     DateTime       @default(now())
+
+  @@index([businessId, createdAt])
+}
+
+model PurchaseItem {
+  id          String   @id @default(uuid())
+  purchaseId  String
+  purchase    Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  productName String
+  unit        String
+  quantity    Float
+  unitCost    Float
+  subtotal    Float
+}
+
+model CreditTransaction {
+  id                  String          @id @default(uuid())
+  businessId          String
+  business            Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  entityType          String // 'CUSTOMER' | 'SUPPLIER'
+  entityId            String
+  entityName          String
+  type                CreditTxType
+  amount              Float
+  balanceAfter        Float
+  paymentMethod       String?
+  notes               String?
+  referenceSaleId     String?
+  referencePurchaseId String?
+  customerId          String?
+  customer            Customer?       @relation(fields: [customerId], references: [id])
+  supplierId          String?
+  supplier            Supplier?       @relation(fields: [supplierId], references: [id])
+  createdAt           DateTime        @default(now())
+
+  @@index([businessId, entityId])
+  @@index([businessId, createdAt])
+}
+
+model Expense {
+  id            String        @id @default(uuid())
+  businessId    String
+  business      Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category      String
+  amount        Float
+  paymentMethod PaymentMethod
+  description   String
+  date          DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+
+  @@index([businessId, date])
+}
+
+model BusinessMemory {
+  id           String     @id @default(uuid())
+  businessId   String
+  business     Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  type         MemoryType
+  title        String
+  content      String
+  tamilContent String?
+  source       String
+  importance   String     @default("MEDIUM")
+  metadata     Json?
+  createdAt    DateTime   @default(now())
+
+  @@index([businessId, type])
+  @@index([businessId, createdAt])
+}
+
+model Alert {
+  id           String        @id @default(uuid())
+  businessId   String
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  type         String
+  severity     AlertSeverity
+  title        String
+  message      String
+  tamilMessage String?
+  isRead       Boolean       @default(false)
+  link         String?
+  createdAt    DateTime      @default(now())
+
+  @@index([businessId, isRead])
+}
+
+model GovernmentScheme {
+  id                 String   @id @default(uuid())
+  name               String
+  tamilName          String
+  code               String   @unique
+  agency             String
+  businessCategory   String[]
+  eligibility        String
+  eligibilityTamil   String
+  subsidyOrLoan      String
+  subsidyPercentage  String?
+  maxAmount          String
+  requiredDocuments  String[]
+  applicationProcess String
+  portalUrl          String
+  lastUpdated        DateTime
+  active             Boolean  @default(true)
+
+  @@index([active])
+}
+
+model MarketIndicator {
+  id               String   @id @default(uuid())
+  commodity        String
+  tamilName        String
+  marketLocation   String
+  unit             String
+  currentPrice     Float
+  previousPrice    Float
+  changePercentage Float
+  trend            String
+  demandLevel      String
+  updatedAt        DateTime @default(now())
+  notes            String
+}
+
+model AIConversation {
+  id         String      @id @default(uuid())
+  businessId String
+  business   Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String
+  title      String
+  messages   AIMessage[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([businessId, userId])
+}
+
+model AIMessage {
+  id             String         @id @default(uuid())
+  conversationId String
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         String
+  text           String
+  intent         String?
+  toolCalls      Json?
+  dataInsight    Json?
+  createdAt      DateTime       @default(now())
+}
