@@ -113,13 +113,25 @@ const AppContent: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6">
           <div className="max-w-7xl mx-auto pb-10">
             {activeTab === 'DASHBOARD' && (
-             <DashboardView
+            <DashboardView
   onNavigate={(tab) => setActiveTab(tab)}
   onOpenVoice={() => setIsVoiceOpen(true)}
-  onOpenNewSale={() => setIsNewSaleOpen(true)}
-  onOpenNewPurchase={() => setIsNewPurchaseOpen(true)}
-  onOpenNewExpense={() => setIsExpenseOpen(true)}
-  onOpenCreditModal={() => setIsPaymentOpen(true)}
+  onOpenNewSale={() => {
+    setActiveTab('SALES');
+    setIsNewSaleOpen(true);
+  }}
+  onOpenNewPurchase={() => {
+    setActiveTab('PURCHASES');
+    setIsNewPurchaseOpen(true);
+  }}
+  onOpenNewExpense={() => {
+    setActiveTab('EXPENSES');
+    setIsExpenseOpen(true);
+  }}
+  onOpenCreditModal={() => {
+    setActiveTab('CREDIT');
+    setIsPaymentOpen(true);
+  }}
 />
             )}
 
