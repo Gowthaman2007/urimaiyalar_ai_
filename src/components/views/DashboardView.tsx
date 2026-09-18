@@ -93,14 +93,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b'];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300 font-semibold">
       {/* Top Banner / Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 lg:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             <span>{isEnglish ? 'Business Overview' : isTanglish ? 'Business Overview' : 'வணிக மேலோட்டம்'}</span>
             <span className="text-emerald-600 font-serif">•</span>
-            <span className="text-slate-500 text-base font-normal">
+            <span className="text-slate-500 text-base font-semibold">
               {isEnglish ? 'Live Store Dashboard' : 'Business Overview'}
             </span>
           </h1>
@@ -149,7 +149,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     : 'உரிமையாளர் AI நுண்ணறிவு வழிகாட்டி (AI Advisor)'}
                 </span>
               </div>
-              <p className="text-sm font-medium text-emerald-50 leading-relaxed max-w-3xl">
+              <p className="text-sm font-semibold text-emerald-50 leading-relaxed max-w-3xl">
                 {summary.tamilInsights[0]}
               </p>
             </div>
@@ -355,10 +355,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </p>
             </div>
             <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1 text-slate-600 font-medium">
+              <span className="flex items-center gap-1 text-slate-600 font-semibold">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> {isEnglish ? 'Sales' : 'விற்பனை (Sales)'}
               </span>
-              <span className="flex items-center gap-1 text-slate-600 font-medium">
+              <span className="flex items-center gap-1 text-slate-600 font-semibold">
                 <span className="w-2.5 h-2.5 rounded-full bg-slate-400" /> {isEnglish ? 'Expense' : 'செலவு (Expense)'}
               </span>
             </div>
@@ -427,7 +427,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-medium">
+            <span className="text-slate-500 font-semibold">
               {isEnglish ? 'Total Expenses:' : 'மொத்த செலவு:'}
             </span>
             <span className="font-bold text-slate-800">
